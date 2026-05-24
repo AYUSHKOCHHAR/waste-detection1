@@ -1,0 +1,17 @@
+# Model weights (large files — use Git LFS or upload manually)
+weights/*.pt
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db

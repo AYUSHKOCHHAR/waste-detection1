@@ -1,0 +1,13 @@
+streamlit>=1.38.0
+opencv-python-headless>=4.8.1.78
+torch>=2.9.0
+torchvision>=0.20.0
+ultralytics>=8.2.0
+pandas
+plotly
+Pillow
+numpy
+anthropic>=0.25.0
+audio-recorder-streamlit>=0.0.8
+gTTS>=2.5.0
+openai>=1.0.0
