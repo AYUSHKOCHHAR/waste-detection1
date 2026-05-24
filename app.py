@@ -2,7 +2,6 @@ from pathlib import Path
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-import cv2
 import numpy as np
 from PIL import Image
 import io
@@ -221,7 +220,6 @@ with st.sidebar:
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("<p style='font-size:11px;color:#3a4452;margin-bottom:8px;letter-spacing:0.5px;text-transform:uppercase;'>API Keys</p>", unsafe_allow_html=True)
 
-    # Read from secrets.toml if available (for cloud deploy) — safe fallback
     try:
         _ant_secret = st.secrets.get("ANTHROPIC_API_KEY", "")
         _oai_secret = st.secrets.get("OPENAI_API_KEY", "")
@@ -317,10 +315,14 @@ with tab_photo:
     )
 
     if uploaded_file:
-        # Read image
-        file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-        img_bgr    = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-        img_resized = cv2.resize(img_bgr, (640, int(640 * (9 / 16))))
+        # Read image using Pillow (no cv2 needed)
+        pil_img = Image.open(uploaded_file).convert("RGB")
+        new_h = int(640 * (9 / 16))
+        pil_img = pil_img.resize((640, new_h))
+
+        # Convert to BGR numpy array for YOLO
+        img_bgr = np.array(pil_img)[:, :, ::-1].copy()
+        img_resized = img_bgr
 
         # Run YOLO
         allowed = helper._get_allowed_classes(model)
@@ -358,9 +360,10 @@ with tab_photo:
         # ── AI Assistant for uploaded photo ──────────────────────────────────
         st.markdown("<div class='sec-header'>🤖 Ask AI About This Image</div>", unsafe_allow_html=True)
 
-        # Store image bytes for Claude
-        _, img_encoded = cv2.imencode('.jpg', img_resized)
-        img_bytes_for_claude = img_encoded.tobytes()
+        # Convert PIL image to JPEG bytes for Claude (no cv2 needed)
+        buf = io.BytesIO()
+        pil_img.save(buf, format="JPEG")
+        img_bytes_for_claude = buf.getvalue()
 
         voice_tab, text_tab = st.tabs(["🎤 Voice Question", "⌨️ Type Question"])
 
@@ -429,7 +432,6 @@ with tab_photo:
             </div>
             """, unsafe_allow_html=True)
 
-            # Text-to-Speech button
             if st.button("🔊 Listen to Response"):
                 with st.spinner("Generating audio..."):
                     audio_buf = helper.text_to_speech(st.session_state['ai_response'])
