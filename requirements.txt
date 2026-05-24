@@ -7,7 +7,7 @@ pandas
 plotly
 Pillow
 numpy
-anthropic>=0.25.0
+google-generativeai>=0.7.0
 audio-recorder-streamlit>=0.0.8
 gTTS>=2.5.0
 openai>=1.0.0
